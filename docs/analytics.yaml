@@ -1,0 +1,114 @@
+openapi: 3.0.0
+info:
+  title: Analytics API
+  description: API for calculating analytics based on datasets
+  version: 1.0.0
+
+paths:
+  /value-growth:
+    get:
+      summary: Calculate value growth
+      description: Calculates value growth rate of a numerical attribute as a percentage.
+      parameters:
+        - name: attribute
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: event_type
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Growth rate calculated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  growth_rate:
+                    type: number
+                    format: float
+  /predict:
+    get:
+      summary: Predict future value
+      description: Predicts the value of an attribute for a given event type and year.
+      parameters:
+        - name: attribute
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: event_type
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Prediction calculated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  predicted_value:
+                    type: number
+                    format: float
+  /highest:
+    get:
+      summary: Get highest value
+      description: Returns the highest value of an attribute for a given event type.
+      parameters:
+        - name: attribute
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: event_type
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Highest value retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  highest_value:
+                    type: number
+  /lowest:
+    get:
+      summary: Get lowest value
+      description: Returns the lowest value of an attribute for a given event type.
+      parameters:
+        - name: attribute
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: event_type
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lowest value retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lowest_value:
+                    type: number
