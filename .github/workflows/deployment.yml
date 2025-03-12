@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - W18BTANGO-21
 
 env:
   AWS_REGION: us-east-1
