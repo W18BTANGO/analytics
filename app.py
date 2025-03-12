@@ -1,15 +1,10 @@
-# lambda_function.py
-import json
-import os
+from flask import Flask
 
-def lambda_handler(event, context):
-    file_path = os.path.join(os.path.dirname(__file__), 'data.json')
-    
-    with open(file_path, 'r') as file:
-        data = json.load(file)
-    
-    print("Data:", data)
-    return {
-        'statusCode': 200,
-        'body': json.dumps(data)
-    }
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!'
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)

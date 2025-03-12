@@ -7,8 +7,8 @@ on:
       - W18BTANGO-21
 
 env:
-  AWS_REGION: us-east-1
-  ECR_REPOSITORY: collection
+  AWS_REGION: ap-southeast-2
+  ECR_REPOSITORY: analytics
   IMAGE_TAG: latest
 
 jobs:
@@ -24,7 +24,6 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
