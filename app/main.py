@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from sklearn.linear_model import LinearRegression
 import numpy as np
@@ -59,14 +59,37 @@ def median_price_by_suburb(data: HouseSalesData):
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/highest")
-async def highest(attribute: str, event_type: str):
-    # Dummy calculation (replace)
-    highest_value = 999  
-    return {"highest_value": highest_value}
+async def highest(prices: List[float] = Query(None)):
+    try:
+        if not prices:
+            raise HTTPException(status_code=400, detail="No prices provided.")
+        
+        highest_value = max(prices)
+        return {"highest_value": highest_value}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/lowest")
-async def lowest(attribute: str, event_type: str):
-    # Dummy calculation (replace)
-    lowest_value = 1  
-    return {"lowest_value": lowest_value}
+async def lowest(prices: List[float] = Query(None)):
+    try:
+        if not prices:
+            raise HTTPException(status_code=400, detail="No prices provided.")
+        
+        lowest_value = min(prices)
+        return {"lowest_value": lowest_value}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/median")
+async def median(prices: List[float] = Query(None)):
+    try:
+        if not prices:
+            raise HTTPException(status_code=400, detail="No prices provided.")
+        
+        median_value = statistics.median(prices)
+        return {"median": median_value}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 
