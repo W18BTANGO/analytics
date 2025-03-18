@@ -92,4 +92,8 @@ async def median(prices: List[float] = Query(None)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@app.get("/")
+async def hello():
+   return {"hello" : "world"}
+
 
