@@ -1,14 +1,24 @@
-from flask import Flask
+from fastapi import FastAPI
 
-app = Flask(__name__)
+# Create a FastAPI instance
+app = FastAPI()
 
-@app.route('/')
+# Define a root route
+@app.get("/")
 def hello_world():
-    return 'Hello, World!'
+    return {"message": "Hello, World!"}
 
-@app.route('/hello')
+# Define a /hello route
+@app.get("/hello")
 def goodbye_world():
-    return 'Goodbye, World!'
+    return {"message": "Goodbye, World!"}
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+# Define a /priya route
+@app.get("/priya")
+def hello_priya():
+    return {"message": "hello, priya!"}
+
+# Run the app with Uvicorn (FastAPI's recommended ASGI server)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5000)
