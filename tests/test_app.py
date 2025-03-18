@@ -325,3 +325,8 @@ def test_total_sales_per_year_invalid_date():
 def test_most_expensive_and_cheapest_suburb_no_data():
     response = client.post("/most-expensive-and-cheapest-suburb", json=[])
     assert response.status_code == 400
+
+def test_health():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}

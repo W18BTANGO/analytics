@@ -7,6 +7,9 @@ from typing import List, Dict, Any
 import statistics
 from collections import defaultdict
 from datetime import date
+from fastapi.middleware.cors import CORSMiddleware
+
+
 
 
 app = FastAPI(
@@ -312,3 +315,8 @@ def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]):
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/")
+def health_check():
+    return { "status": "healthy","microservice":"analytics" }
