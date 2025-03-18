@@ -4,8 +4,16 @@ from sklearn.linear_model import LinearRegression
 import numpy as np
 from typing import List
 import statistics
-
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(title="Analytics API", description="API for calculating analytics based on datasets", version="1.0.0")
+
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Allows all origins
+        allow_credentials=True,
+        allow_methods=["*"],  # Allows all methods
+        allow_headers=["*"],  # Allows all headers
+    )
 
 class PredictionRequest(BaseModel):
     x: list[float]
