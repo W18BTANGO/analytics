@@ -1,6 +1,6 @@
 
 # Use a multi-architecture base image
-FROM --platform=linux/arm64 python:3.9-slim
+FROM --platform=linux/amd64 python:3.11-slim
 
 # Set the working directory in the container
 WORKDIR /app
