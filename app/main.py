@@ -22,6 +22,14 @@ class FilteredEventData(BaseModel):
     attribute: Dict[str, Any]
 
 
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Allows all origins
+        allow_credentials=True,
+        allow_methods=["*"],  # Allows all methods
+        allow_headers=["*"],  # Allows all headers
+    )
+
 class PredictionRequest(BaseModel):
     data: List[FilteredEventData]  # List of filtered event data
     x_attribute: str  # Name of the feature (x) attribute
@@ -277,7 +285,6 @@ def total_sales_per_year(data: List[FilteredEventData]):
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
 
 @app.post("/most-expensive-and-cheapest-suburb")
 def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]):
