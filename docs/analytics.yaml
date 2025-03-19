@@ -3,112 +3,202 @@ info:
   title: Analytics API
   description: API for calculating analytics based on datasets
   version: 1.0.0
-
 paths:
-  /value-growth:
-    get:
-      summary: Calculate value growth
-      description: Calculates value growth rate of a numerical attribute as a percentage.
-      parameters:
-        - name: attribute
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: event_type
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Growth rate calculated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  growth_rate:
-                    type: number
-                    format: float
   /predict:
-    get:
-      summary: Predict future value
-      description: Predicts the value of an attribute for a given event type and year.
-      parameters:
-        - name: attribute
-          in: query
-          required: true
-          schema:
+    post:
+      summary: Predict values using linear regression
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictionRequest'
+      responses:
+        '200':
+          description: Successful prediction
+        '400':
+          description: Bad request
+  /average-price-by-suburb:
+    post:
+      summary: Calculate the average price per suburb
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/FilteredEventData'
+      responses:
+        '200':
+          description: Average prices per suburb
+        '400':
+          description: Bad request
+  /median-price-by-suburb:
+    post:
+      summary: Calculate the median price per suburb
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/FilteredEventData'
+      responses:
+        '200':
+          description: Median prices per suburb
+        '400':
+          description: Bad request
+  /highest-value:
+    post:
+      summary: Find the highest value of an attribute
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestBody'
+      responses:
+        '200':
+          description: Highest value found
+        '400':
+          description: Bad request
+  /lowest-value:
+    post:
+      summary: Find the lowest value of an attribute
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestBody'
+      responses:
+        '200':
+          description: Lowest value found
+        '400':
+          description: Bad request
+  /median-value:
+    post:
+      summary: Find the median value of an attribute
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestBody'
+      responses:
+        '200':
+          description: Median value found
+        '400':
+          description: Bad request
+  /predict-future-prices:
+    post:
+      summary: Predict future prices using linear regression
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FuturePrices'
+      responses:
+        '200':
+          description: Predicted future prices
+        '400':
+          description: Bad request
+  /price-outliers:
+    post:
+      summary: Identify outlier prices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/FilteredEventData'
+      responses:
+        '200':
+          description: List of outliers
+        '400':
+          description: Bad request
+  /total-sales-per-year:
+    post:
+      summary: Calculate total sales per year
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/FilteredEventData'
+      responses:
+        '200':
+          description: Total sales per year
+        '400':
+          description: Bad request
+  /most-expensive-and-cheapest-suburb:
+    post:
+      summary: Find the most expensive and cheapest suburb
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/FilteredEventData'
+      responses:
+        '200':
+          description: Most expensive and cheapest suburb
+        '400':
+          description: Bad request
+components:
+  schemas:
+    FilteredEventData:
+      type: object
+      properties:
+        time_object:
+          type: object
+          additionalProperties: true
+        event_type:
+          type: string
+        attribute:
+          type: object
+          additionalProperties: true
+    PredictionRequest:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilteredEventData'
+        x_attribute:
+          type: string
+        y_attribute:
+          type: string
+        x_values:
+          type: array
+          items:
             type: string
-        - name: event_type
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: year
-          in: query
-          required: true
-          schema:
+    RequestBody:
+      type: object
+      properties:
+        attribute_name:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilteredEventData'
+    FuturePrices:
+      type: object
+      properties:
+        years:
+          type: array
+          items:
             type: integer
-      responses:
-        "200":
-          description: Prediction calculated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  predicted_value:
-                    type: number
-                    format: float
-  /highest:
-    get:
-      summary: Get highest value
-      description: Returns the highest value of an attribute for a given event type.
-      parameters:
-        - name: attribute
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: event_type
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Highest value retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  highest_value:
-                    type: number
-  /lowest:
-    get:
-      summary: Get lowest value
-      description: Returns the lowest value of an attribute for a given event type.
-      parameters:
-        - name: attribute
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: event_type
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Lowest value retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  lowest_value:
-                    type: number
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilteredEventData'
