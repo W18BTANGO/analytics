@@ -1,15 +1,12 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import LabelEncoder
 import numpy as np
 from typing import List, Dict, Any
 import statistics
 from collections import defaultdict
 from datetime import date
 from fastapi.middleware.cors import CORSMiddleware
-
-
 
 
 app = FastAPI(
@@ -26,12 +23,13 @@ class FilteredEventData(BaseModel):
 
 
 app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],  # Allows all origins
-        allow_credentials=True,
-        allow_methods=["*"],  # Allows all methods
-        allow_headers=["*"],  # Allows all headers
-    )
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
 
 class PredictionRequest(BaseModel):
     data: List[FilteredEventData]  # List of filtered event data
@@ -289,6 +287,7 @@ def total_sales_per_year(data: List[FilteredEventData]):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @app.post("/most-expensive-and-cheapest-suburb")
 def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]):
     try:
@@ -319,4 +318,4 @@ def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]):
 
 @app.get("/")
 def health_check():
-    return { "status": "healthy","microservice":"analytics" }
+    return {"status": "healthy", "microservice": "analytics"}

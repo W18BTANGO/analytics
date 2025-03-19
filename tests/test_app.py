@@ -329,4 +329,4 @@ def test_most_expensive_and_cheapest_suburb_no_data():
 def test_health():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json() == {"status": "healthy","microservice": "analytics"}
