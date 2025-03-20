@@ -1,0 +1,21 @@
+name: Analytics CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - setup_CI
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  CI_CD:
+    runs-on: ubuntu-latest
+    steps:
+      #  Runs continuous integration yaml file
+      - name: My first step - check out repository
+        uses: ./.github/actions/actionCI
+      #  Runs continuous deployment yaml file
+      - name: My first step - check out repository
+        uses: ./.github/actions/actionCD

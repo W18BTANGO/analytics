@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - setup_CD
+      - setup_CI
 
 env:
   AWS_REGION: ap-southeast-2
