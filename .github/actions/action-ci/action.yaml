@@ -3,8 +3,8 @@ description: 'Runs tests and linting for the project'
 runs:
   using: 'composite'  # Use composite to run multiple steps
   steps:
-    - name: Run tests
-      run: pytest
+    - name: Run tests (and coverage)
+      run: pytest --cov=app --cov-report=term-missing --cov-fail-under=90 tests/
       shell: bash
 
     - name: Run linting
