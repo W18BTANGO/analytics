@@ -28,7 +28,7 @@ name: Deploy to Amazon ECS
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "setup_CI" ]
 
 env:
   AWS_REGION: ap-southeast-2                      # set this to your preferred AWS region, e.g. us-west-1
