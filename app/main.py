@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from sklearn.linear_model import LinearRegression
 import numpy as np
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any
 import statistics
 from collections import defaultdict
 from datetime import date
@@ -49,22 +49,22 @@ class FuturePrices(BaseModel):
 
 
 @app.post("/predict")
-def predict(data: PredictionRequest) -> Dict[str, List[float]]:
+def predict(data: PredictionRequest):
     try:
         # Extract x and y values from filtered event data based on provided attribute names
-        x_data: List[Optional[Any]] = [event.attribute.get(data.x_attribute) for event in data.data]
-        y_data: List[Optional[Any]] = [event.attribute.get(data.y_attribute) for event in data.data]
+        x_data = [event.attribute.get(data.x_attribute) for event in data.data]
+        y_data = [event.attribute.get(data.y_attribute) for event in data.data]
 
         # Convert data to numpy arrays
-        x_data = np.array(x_data, dtype=float).reshape(-1, 1)
-        y_data = np.array(y_data, dtype=float)
+        x_data = np.array(x_data).reshape(-1, 1)
+        y_data = np.array(y_data)
 
         # Initialize and fit the model
         model = LinearRegression()
         model.fit(x_data, y_data)
 
         # Prepare x_values for prediction (reshaping to match the model's expected input)
-        x_values = np.array(data.x_values, dtype=float).reshape(-1, 1)
+        x_values = np.array(x_data).reshape(-1, 1)
 
         # Make predictions
         prediction = model.predict(x_values)
@@ -77,9 +77,9 @@ def predict(data: PredictionRequest) -> Dict[str, List[float]]:
 @app.post("/average-price-by-suburb")
 def average_price_by_suburb(
     data: List[FilteredEventData],
-) -> Dict[str, Dict[str, float]]:
+):  # Modify the input to accept a list of FilteredEventData
     try:
-        suburb_prices: Dict[str, List[float]] = {}
+        suburb_prices = {}
 
         for event in data:
             suburb = event.attribute.get("suburb")
@@ -100,9 +100,9 @@ def average_price_by_suburb(
 @app.post("/median-price-by-suburb")
 def median_price_by_suburb(
     data: List[FilteredEventData],
-) -> Dict[str, Dict[str, float]]:
+):  # Modify the input to accept a list of FilteredEventData
     try:
-        suburb_prices: Dict[str, List[float]] = {}
+        suburb_prices = {}
 
         for event in data:
             suburb = event.attribute.get("suburb")
@@ -118,14 +118,14 @@ def median_price_by_suburb(
         }
         return {"median_prices": median_prices}
     except Exception as e:
-        raise HTTPException(status_code=400, detail.str(e))
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post("/highest-value")
-def highest_value(data: RequestBody) -> Dict[str, float]:
+def highest_value(data: RequestBody):
     try:
         # Extract the values of the specified attribute
-        attribute_values: List[Optional[Any]] = [
+        attribute_values = [
             event.attribute.get(data.attribute_name) for event in data.data
         ]
 
@@ -148,10 +148,10 @@ def highest_value(data: RequestBody) -> Dict[str, float]:
 
 
 @app.post("/lowest-value")
-def lowest_value(data: RequestBody) -> Dict[str, float]:
+def lowest_value(data: RequestBody):
     try:
         # Extract the values of the specified attribute
-        attribute_values: List[Optional[Any]] = [
+        attribute_values = [
             event.attribute.get(data.attribute_name) for event in data.data
         ]
 
@@ -174,10 +174,10 @@ def lowest_value(data: RequestBody) -> Dict[str, float]:
 
 
 @app.post("/median-value")
-def median_value(data: RequestBody) -> Dict[str, float]:
+def median_value(data: RequestBody):
     try:
         # Extract the values of the specified attribute
-        attribute_values: List[Optional[Any]] = [
+        attribute_values = [
             event.attribute.get(data.attribute_name) for event in data.data
         ]
 
@@ -200,11 +200,11 @@ def median_value(data: RequestBody) -> Dict[str, float]:
 
 
 @app.post("/predict-future-prices")
-def predict_future_prices(data: FuturePrices) -> Dict[str, Dict[int, float]]:
+def predict_future_prices(data: FuturePrices):
     try:
         # Extract x (year) and y (price)
-        x_data: List[int] = []
-        y_data: List[Any] = []
+        x_data = []
+        y_data = []
 
         for event in data.data:
             timestamp = event.time_object.get("timestamp")
@@ -220,15 +220,15 @@ def predict_future_prices(data: FuturePrices) -> Dict[str, Dict[int, float]]:
             )
 
         # Convert data to numpy arrays
-        x_data = np.array(x_data, dtype=int).reshape(-1, 1)
-        y_data = np.array(y_data, dtype=float)
+        x_data = np.array(x_data).reshape(-1, 1)
+        y_data = np.array(y_data)
 
         # Fit linear regression model
         model = LinearRegression()
         model.fit(x_data, y_data)
 
         # Predict for future years
-        future_years = np.array(data.years, dtype=int).reshape(-1, 1)
+        future_years = np.array(data.years).reshape(-1, 1)
         predictions = model.predict(future_years)
 
         return {
@@ -242,10 +242,10 @@ def predict_future_prices(data: FuturePrices) -> Dict[str, Dict[int, float]]:
 
 
 @app.post("/price-outliers")
-def price_outliers(data: List[FilteredEventData]) -> Dict[str, List[float]]:
+def price_outliers(data: List[FilteredEventData]):
     try:
         # Extract prices from the input data
-        prices: List[Optional[Any]] = [
+        prices = [
             event.attribute.get("price")
             for event in data
             if event.attribute.get("price") is not None
@@ -268,7 +268,7 @@ def price_outliers(data: List[FilteredEventData]) -> Dict[str, List[float]]:
 
         # Identify outliers
         outliers = [
-            price for price in prices if price is not None and (price < lower_bound or price > upper_bound)
+            price for price in prices if price < lower_bound or price > upper_bound
         ]
 
         return {"outliers": outliers}
@@ -282,9 +282,9 @@ def price_outliers(data: List[FilteredEventData]) -> Dict[str, List[float]]:
 
 
 @app.post("/total-sales-per-year")
-def total_sales_per_year(data: List[FilteredEventData]) -> Dict[str, Dict[int, int]]:
+def total_sales_per_year(data: List[FilteredEventData]):
     try:
-        sales_by_year: Dict[int, int] = defaultdict(int)
+        sales_by_year = defaultdict(int)
 
         for event in data:
             timestamp = event.time_object.get("timestamp")
@@ -299,9 +299,9 @@ def total_sales_per_year(data: List[FilteredEventData]) -> Dict[str, Dict[int, i
 
 
 @app.post("/most-expensive-and-cheapest-suburb")
-def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]) -> Dict[str, str]:
+def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]):
     try:
-        suburb_prices: Dict[str, List[float]] = {}
+        suburb_prices = {}
 
         for event in data:
             suburb = event.attribute.get("suburb")
@@ -327,7 +327,7 @@ def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]) -> Dict[st
 
 
 @app.get("/")
-def health_check() -> Dict[str, str]:
+def health_check():
     return {"status": "healthy", "microservice": "analytics"}
 
 
