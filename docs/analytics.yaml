@@ -3,24 +3,61 @@ info:
   title: Analytics API
   description: API for calculating analytics based on datasets
   version: 1.0.0
+servers:
+  - url: http://alb8-2127494217.ap-southeast-2.elb.amazonaws.com
+    description: Production server
 paths:
   /predict:
     post:
       summary: Predict values using linear regression
+      description: Uses linear regression to predict values based on input data and specified attributes
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/PredictionRequest'
+            example:
+              data:
+                - time_object:
+                    timestamp: "2023-06-01T00:00:00"
+                    duration: 1
+                    duration_unit: "second"
+                    timezone: "GMT+11"
+                  event_type: "sale"
+                  attribute:
+                    sqft: 1500
+                    price: 300000
+                - time_object:
+                    timestamp: "2023-07-01T00:00:00"
+                    duration: 1
+                    duration_unit: "second"
+                    timezone: "GMT+11"
+                  event_type: "sale"
+                  attribute:
+                    sqft: 2000
+                    price: 400000
+              x_attribute: "sqft"
+              y_attribute: "price"
+              x_values: [1800]
       responses:
         '200':
           description: Successful prediction
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  prediction:
+                    type: array
+                    items:
+                      type: number
         '400':
-          description: Bad request
+          description: Bad request - Invalid input data or missing attributes
   /average-price-by-suburb:
     post:
       summary: Calculate the average price per suburb
+      description: Calculates the mean price for each suburb based on provided sales data
       requestBody:
         required: true
         content:
@@ -29,14 +66,37 @@ paths:
               type: array
               items:
                 $ref: '#/components/schemas/FilteredEventData'
+            example:
+              - time_object:
+                  timestamp: "2023-06-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  suburb: "Downtown"
+                  price: 500000
+              - time_object:
+                  timestamp: "2023-07-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  suburb: "Downtown"
+                  price: 600000
       responses:
         '200':
           description: Average prices per suburb
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  average_prices:
+                    type: object
+                    additionalProperties:
+                      type: number
         '400':
-          description: Bad request
+          description: Bad request - Invalid input data
   /median-price-by-suburb:
     post:
       summary: Calculate the median price per suburb
+      description: Calculates the median price for each suburb based on provided sales data
       requestBody:
         required: true
         content:
@@ -45,70 +105,197 @@ paths:
               type: array
               items:
                 $ref: '#/components/schemas/FilteredEventData'
+            example:
+              - time_object:
+                  timestamp: "2023-06-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  suburb: "Downtown"
+                  price: 500000
+              - time_object:
+                  timestamp: "2023-07-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  suburb: "Downtown"
+                  price: 700000
+              - time_object:
+                  timestamp: "2023-08-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  suburb: "Downtown"
+                  price: 600000
       responses:
         '200':
           description: Median prices per suburb
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  median_prices:
+                    type: object
+                    additionalProperties:
+                      type: number
         '400':
-          description: Bad request
+          description: Bad request - Invalid input data
   /highest-value:
     post:
       summary: Find the highest value of an attribute
+      description: Identifies the maximum value for a specified attribute across all data points
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/RequestBody'
+            example:
+              attribute_name: "price"
+              data:
+                - time_object:
+                    timestamp: "2023-06-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    suburb: "Downtown"
+                    price: 500000
+                - time_object:
+                    timestamp: "2023-07-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    suburb: "Downtown"
+                    price: 700000
       responses:
         '200':
           description: Highest value found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  highest_value:
+                    type: number
         '400':
-          description: Bad request
+          description: Bad request - No valid values found for the specified attribute
   /lowest-value:
     post:
       summary: Find the lowest value of an attribute
+      description: Identifies the minimum value for a specified attribute across all data points
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/RequestBody'
+            example:
+              attribute_name: "price"
+              data:
+                - time_object:
+                    timestamp: "2023-06-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    price: 500000
+                - time_object:
+                    timestamp: "2023-07-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    price: 700000
       responses:
         '200':
           description: Lowest value found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lowest_value:
+                    type: number
         '400':
-          description: Bad request
+          description: Bad request - No valid values found for the specified attribute
   /median-value:
     post:
       summary: Find the median value of an attribute
+      description: Calculates the median value for a specified attribute across all data points
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/RequestBody'
+            example:
+              attribute_name: "price"
+              data:
+                - time_object:
+                    timestamp: "2023-06-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    price: 500000
+                - time_object:
+                    timestamp: "2023-07-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    price: 700000
       responses:
         '200':
           description: Median value found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  median_value:
+                    type: number
         '400':
-          description: Bad request
+          description: Bad request - No valid values found for the specified attribute
   /predict-future-prices:
     post:
       summary: Predict future prices using linear regression
+      description: Uses historical price data to predict prices for specified future years
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/FuturePrices'
+            example:
+              years: [2025, 2026, 2027]
+              data:
+                - time_object:
+                    timestamp: "2020-06-01"
+                  event_type: "sale"
+                  attribute:
+                    price: 300000
+                - time_object:
+                    timestamp: "2021-06-01"
+                  event_type: "sale"
+                  attribute:
+                    price: 350000
+                - time_object:
+                    timestamp: "2022-06-01"
+                  event_type: "sale"
+                  attribute:
+                    price: 400000
+                - time_object:
+                    timestamp: "2023-06-01"
+                  event_type: "sale"
+                  attribute:
+                    price: 450000
       responses:
         '200':
           description: Predicted future prices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  predicted_prices:
+                    type: object
+                    additionalProperties:
+                      type: number
         '400':
-          description: Bad request
+          description: Bad request - Not enough data for prediction or missing required fields
   /price-outliers:
     post:
       summary: Identify outlier prices
+      description: Identifies prices that are statistical outliers using the IQR method
       requestBody:
         required: true
         content:
@@ -117,14 +304,45 @@ paths:
               type: array
               items:
                 $ref: '#/components/schemas/FilteredEventData'
+            example:
+              - time_object:
+                  timestamp: "2023-06-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  price: 100000
+              - time_object:
+                  timestamp: "2023-07-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  price: 200000
+              - time_object:
+                  timestamp: "2023-08-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  price: 5000000
+              - time_object:
+                  timestamp: "2023-09-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  price: 250000
       responses:
         '200':
           description: List of outliers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  outliers:
+                    type: array
+                    items:
+                      type: number
         '400':
-          description: Bad request
+          description: Bad request - Not enough data to calculate outliers
   /total-sales-per-year:
     post:
       summary: Calculate total sales per year
+      description: Counts the number of sales events for each year in the dataset
       requestBody:
         required: true
         content:
@@ -133,14 +351,37 @@ paths:
               type: array
               items:
                 $ref: '#/components/schemas/FilteredEventData'
+            example:
+              - time_object:
+                  timestamp: "2023-06-01"
+                event_type: "sale"
+                attribute: {}
+              - time_object:
+                  timestamp: "2023-08-15"
+                event_type: "sale"
+                attribute: {}
+              - time_object:
+                  timestamp: "2022-05-20"
+                event_type: "sale"
+                attribute: {}
       responses:
         '200':
           description: Total sales per year
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_sales_per_year:
+                    type: object
+                    additionalProperties:
+                      type: integer
         '400':
-          description: Bad request
+          description: Bad request - Invalid date format
   /most-expensive-and-cheapest-suburb:
     post:
       summary: Find the most expensive and cheapest suburb
+      description: Identifies suburbs with the highest and lowest average prices
       requestBody:
         required: true
         content:
@@ -149,11 +390,57 @@ paths:
               type: array
               items:
                 $ref: '#/components/schemas/FilteredEventData'
+            example:
+              - time_object:
+                  timestamp: "2023-06-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  suburb: "Balmain"
+                  price: 500000
+              - time_object:
+                  timestamp: "2023-06-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  suburb: "Balmain"
+                  price: 600000
+              - time_object:
+                  timestamp: "2023-06-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  suburb: "Rhodes"
+                  price: 300000
+              - time_object:
+                  timestamp: "2023-06-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  suburb: "Rhodes"
+                  price: 350000
+              - time_object:
+                  timestamp: "2023-06-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  suburb: "Darlinghurst"
+                  price: 900000
+              - time_object:
+                  timestamp: "2023-06-01T00:00:00"
+                event_type: "sale"
+                attribute:
+                  suburb: "Darlinghurst"
+                  price: 1000000
       responses:
         '200':
           description: Most expensive and cheapest suburb
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  most_expensive_suburb:
+                    type: string
+                  cheapest_suburb:
+                    type: string
         '400':
-          description: Bad request
+          description: Bad request - No valid data provided
 components:
   schemas:
     FilteredEventData:
@@ -161,7 +448,16 @@ components:
       properties:
         time_object:
           type: object
-          additionalProperties: true
+          properties:
+            timestamp:
+              type: string
+              format: date-time
+            duration:
+              type: number
+            duration_unit:
+              type: string
+            timezone:
+              type: string
         event_type:
           type: string
         attribute:
@@ -181,7 +477,7 @@ components:
         x_values:
           type: array
           items:
-            type: string
+            type: number
     RequestBody:
       type: object
       properties:
