@@ -16,7 +16,7 @@ jobs:
   deploy:
     uses:  W18BTANGO/ci-cd/.github/workflows/deploy.yaml@main
     with:
-      aws_region: ap-southeast-2                        
+      aws-region: ap-southeast-2                        
       ecr-repository: analyticsamd                      
       ecs-service: analyticsEC2service                  
       ecs-cluster: AnalyticsClusterEC2                  
