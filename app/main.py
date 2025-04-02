@@ -328,7 +328,8 @@ def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]):
 
 @app.get("/")
 def health_check():
-    return { "status": "healthy","microservice":"analytics" }
+    return {"status": "healthy", "microservice":"analytics"}
+
 
 if __name__ == "__main__":
     import uvicorn
