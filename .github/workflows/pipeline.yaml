@@ -25,18 +25,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pytest-cov
-
-      - name: Run tests with coverage
-        run: |
-          pytest --cov=app --cov-report=xml --cov-report=term-missing --cov-fail-under=85 tests/
-          echo "Tests completed with coverage"
-
-      - name: Upload coverage report
-        uses: actions/upload-pages-artifact@v3
-        with:
-          name: coverage-report
-          path: coverage.xml
 
       - name: Run CI steps
         uses: ./.github/actions/action-ci 
@@ -46,7 +34,7 @@ jobs:
     needs: continuous_integration
     env:
       AWS_REGION: ap-southeast-2
-      ECR_REPOSITORY: analyticsamd
+      ECR_REPOSITORY: preprocessing
       IMAGE_TAG: latest
     steps:
       - name: Checkout code
@@ -57,3 +45,37 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run unit tests with coverage
+        run: |
+          pytest --cov=app --cov-report=html --cov-report=xml --cov-fail-under=85 --junitxml=report.xml tests
+
+      - name: Verify coverage report directory
+        run: |
+          if [ ! -d "htmlcov" ]; then
+            echo "Error: htmlcov/ directory not found. Ensure tests pass and --cov-report=html is enabled."
+            exit 1
+          fi
+
+      - name: Upload coverage report
+        uses: actions/upload-pages-artifact@v3
+        with:
+          name: coverage-report
+          path: htmlcov/
