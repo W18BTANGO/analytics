@@ -1,6 +1,5 @@
 name: 'CD Action'
 description: 'Builds and pushes Docker image to ECR'
-inputs:
 runs:
   using: 'composite'
   steps:
