@@ -246,29 +246,39 @@ def predict_future_prices(data: FuturePrices):
 @app.post("/price-outliers")
 def price_outliers(data: List[FilteredEventData]):
     try:
+        # Extract prices from the input data
         prices = [
             event.attribute.get("price")
             for event in data
             if event.attribute.get("price") is not None
         ]
 
+        # Ensure there are enough data points to calculate outliers
         if len(prices) < 4:
             raise HTTPException(
                 status_code=400, detail="Not enough data to calculate outliers."
             )
 
+        # Calculate the interquartile range (IQR)
         q1 = np.percentile(prices, 25)
         q3 = np.percentile(prices, 75)
         iqr = q3 - q1
+
+        # Calculate bounds for outliers
         lower_bound = q1 - 1.5 * iqr
         upper_bound = q3 + 1.5 * iqr
 
+        # Identify outliers
         outliers = [
             price for price in prices if price < lower_bound or price > upper_bound
         ]
 
         return {"outliers": outliers}
 
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400, detail="Error in calculating percentiles: " + str(e)
+        )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -320,3 +330,7 @@ def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]):
 @app.get("/")
 def health_check():
     return { "status": "healthy","microservice":"analytics" }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="localhost", port=8000)  # Change port number here
