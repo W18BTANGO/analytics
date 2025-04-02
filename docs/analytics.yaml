@@ -10,7 +10,21 @@ paths:
   /predict:
     post:
       summary: Predict values using linear regression
-      description: Uses linear regression to predict values based on input data and specified attributes
+      description: |
+        Uses linear regression to predict values based on input data and specified attributes.
+
+        Request body structure:
+        - `data`: Array of event data points containing time information and attributes
+          - `time_object`: Object containing timestamp and duration information
+            - `timestamp`: ISO 8601 formatted date-time string
+            - `duration`: Duration value (optional)
+            - `duration_unit`: Unit of duration (optional)
+            - `timezone`: Timezone information (optional)
+          - `event_type`: Type of event (e.g., "sale")
+          - `attribute`: Object containing the data attributes (e.g., price, sqft)
+        - `x_attribute`: Name of the feature attribute to use for prediction
+        - `y_attribute`: Name of the target attribute to predict
+        - `x_values`: Array of values to predict for
       requestBody:
         required: true
         content:
@@ -52,12 +66,33 @@ paths:
                     type: array
                     items:
                       type: number
+              example:
+                prediction: [350000]
         '400':
           description: Bad request - Invalid input data or missing attributes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+              example:
+                detail: "Invalid input data: Missing required attributes"
   /average-price-by-suburb:
     post:
       summary: Calculate the average price per suburb
-      description: Calculates the mean price for each suburb based on provided sales data
+      description: |
+        Calculates the mean price for each suburb based on provided sales data.
+
+        Request body structure:
+        Array of event data points, each containing:
+        - `time_object`: Object containing timestamp information
+          - `timestamp`: ISO 8601 formatted date-time string
+        - `event_type`: Type of event (e.g., "sale")
+        - `attribute`: Object containing:
+          - `suburb`: Name of the suburb
+          - `price`: Sale price of the property
       requestBody:
         required: true
         content:
@@ -91,12 +126,35 @@ paths:
                     type: object
                     additionalProperties:
                       type: number
+              example:
+                average_prices:
+                  Downtown: 550000
+                  Balmain: 750000
         '400':
           description: Bad request - Invalid input data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+              example:
+                detail: "Invalid input data: Missing suburb or price information"
   /median-price-by-suburb:
     post:
       summary: Calculate the median price per suburb
-      description: Calculates the median price for each suburb based on provided sales data
+      description: |
+        Calculates the median price for each suburb based on provided sales data.
+
+        Request body structure:
+        Array of event data points, each containing:
+        - `time_object`: Object containing timestamp information
+          - `timestamp`: ISO 8601 formatted date-time string
+        - `event_type`: Type of event (e.g., "sale")
+        - `attribute`: Object containing:
+          - `suburb`: Name of the suburb
+          - `price`: Sale price of the property
       requestBody:
         required: true
         content:
@@ -136,12 +194,34 @@ paths:
                     type: object
                     additionalProperties:
                       type: number
+              example:
+                median_prices:
+                  Downtown: 600000
+                  Balmain: 800000
         '400':
           description: Bad request - Invalid input data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+              example:
+                detail: "Invalid input data: Missing suburb or price information"
   /highest-value:
     post:
       summary: Find the highest value of an attribute
-      description: Identifies the maximum value for a specified attribute across all data points
+      description: |
+        Identifies the maximum value for a specified attribute across all data points.
+
+        Request body structure:
+        - `attribute_name`: Name of the attribute to find the highest value for
+        - `data`: Array of event data points, each containing:
+          - `time_object`: Object containing timestamp information
+            - `timestamp`: ISO 8601 formatted date-time string
+          - `event_type`: Type of event (e.g., "sale")
+          - `attribute`: Object containing the attribute to analyze
       requestBody:
         required: true
         content:
@@ -173,12 +253,32 @@ paths:
                 properties:
                   highest_value:
                     type: number
+              example:
+                highest_value: 700000
         '400':
           description: Bad request - No valid values found for the specified attribute
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+              example:
+                detail: "No valid values found for the specified attribute"
   /lowest-value:
     post:
       summary: Find the lowest value of an attribute
-      description: Identifies the minimum value for a specified attribute across all data points
+      description: |
+        Identifies the minimum value for a specified attribute across all data points.
+
+        Request body structure:
+        - `attribute_name`: Name of the attribute to find the lowest value for
+        - `data`: Array of event data points, each containing:
+          - `time_object`: Object containing timestamp information
+            - `timestamp`: ISO 8601 formatted date-time string
+          - `event_type`: Type of event (e.g., "sale")
+          - `attribute`: Object containing the attribute to analyze
       requestBody:
         required: true
         content:
@@ -208,12 +308,32 @@ paths:
                 properties:
                   lowest_value:
                     type: number
+              example:
+                lowest_value: 500000
         '400':
           description: Bad request - No valid values found for the specified attribute
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+              example:
+                detail: "No valid values found for the specified attribute"
   /median-value:
     post:
       summary: Find the median value of an attribute
-      description: Calculates the median value for a specified attribute across all data points
+      description: |
+        Calculates the median value for a specified attribute across all data points.
+
+        Request body structure:
+        - `attribute_name`: Name of the attribute to find the median value for
+        - `data`: Array of event data points, each containing:
+          - `time_object`: Object containing timestamp information
+            - `timestamp`: ISO 8601 formatted date-time string
+          - `event_type`: Type of event (e.g., "sale")
+          - `attribute`: Object containing the attribute to analyze
       requestBody:
         required: true
         content:
@@ -243,12 +363,33 @@ paths:
                 properties:
                   median_value:
                     type: number
+              example:
+                median_value: 600000
         '400':
           description: Bad request - No valid values found for the specified attribute
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+              example:
+                detail: "No valid values found for the specified attribute"
   /predict-future-prices:
     post:
       summary: Predict future prices using linear regression
-      description: Uses historical price data to predict prices for specified future years
+      description: |
+        Uses historical price data to predict prices for specified future years.
+
+        Request body structure:
+        - `years`: Array of future years to predict prices for
+        - `data`: Array of historical event data points, each containing:
+          - `time_object`: Object containing timestamp information
+            - `timestamp`: ISO 8601 formatted date-time string
+          - `event_type`: Type of event (e.g., "sale")
+          - `attribute`: Object containing:
+            - `price`: Historical sale price
       requestBody:
         required: true
         content:
@@ -290,12 +431,35 @@ paths:
                     type: object
                     additionalProperties:
                       type: number
+              example:
+                predicted_prices:
+                  2025: 500000
+                  2026: 550000
+                  2027: 600000
         '400':
           description: Bad request - Not enough data for prediction or missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+              example:
+                detail: "Not enough data for prediction: At least 2 data points required"
   /price-outliers:
     post:
       summary: Identify outlier prices
-      description: Identifies prices that are statistical outliers using the IQR method
+      description: |
+        Identifies prices that are statistical outliers using the IQR method.
+
+        Request body structure:
+        Array of event data points, each containing:
+        - `time_object`: Object containing timestamp information
+          - `timestamp`: ISO 8601 formatted date-time string
+        - `event_type`: Type of event (e.g., "sale")
+        - `attribute`: Object containing:
+          - `price`: Sale price to analyze for outliers
       requestBody:
         required: true
         content:
@@ -337,12 +501,31 @@ paths:
                     type: array
                     items:
                       type: number
+              example:
+                outliers: [5000000]
         '400':
           description: Bad request - Not enough data to calculate outliers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+              example:
+                detail: "Not enough data to calculate outliers: At least 4 data points required"
   /total-sales-per-year:
     post:
       summary: Calculate total sales per year
-      description: Counts the number of sales events for each year in the dataset
+      description: |
+        Counts the number of sales events for each year in the dataset.
+
+        Request body structure:
+        Array of event data points, each containing:
+        - `time_object`: Object containing timestamp information
+          - `timestamp`: ISO 8601 formatted date-time string
+        - `event_type`: Type of event (e.g., "sale")
+        - `attribute`: Object (can be empty)
       requestBody:
         required: true
         content:
@@ -376,12 +559,35 @@ paths:
                     type: object
                     additionalProperties:
                       type: integer
+              example:
+                total_sales_per_year:
+                  2023: 2
+                  2022: 1
         '400':
           description: Bad request - Invalid date format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+              example:
+                detail: "Invalid date format: Expected ISO 8601 format"
   /most-expensive-and-cheapest-suburb:
     post:
       summary: Find the most expensive and cheapest suburb
-      description: Identifies suburbs with the highest and lowest average prices
+      description: |
+        Identifies suburbs with the highest and lowest average prices.
+
+        Request body structure:
+        Array of event data points, each containing:
+        - `time_object`: Object containing timestamp information
+          - `timestamp`: ISO 8601 formatted date-time string
+        - `event_type`: Type of event (e.g., "sale")
+        - `attribute`: Object containing:
+          - `suburb`: Name of the suburb
+          - `price`: Sale price of the property
       requestBody:
         required: true
         content:
@@ -439,8 +645,20 @@ paths:
                     type: string
                   cheapest_suburb:
                     type: string
+              example:
+                most_expensive_suburb: "Darlinghurst"
+                cheapest_suburb: "Rhodes"
         '400':
           description: Bad request - No valid data provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+              example:
+                detail: "No valid data provided: Missing suburb or price information"
 components:
   schemas:
     FilteredEventData:
@@ -452,17 +670,23 @@ components:
             timestamp:
               type: string
               format: date-time
+              description: ISO 8601 formatted date-time string
             duration:
               type: number
+              description: Duration value (optional)
             duration_unit:
               type: string
+              description: Unit of duration (optional)
             timezone:
               type: string
+              description: Timezone information (optional)
         event_type:
           type: string
+          description: Type of event (e.g., "sale")
         attribute:
           type: object
           additionalProperties: true
+          description: Object containing event-specific attributes
     PredictionRequest:
       type: object
       properties:
@@ -470,23 +694,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FilteredEventData'
+          description: Array of event data points for training the prediction model
         x_attribute:
           type: string
+          description: Name of the feature attribute to use for prediction
         y_attribute:
           type: string
+          description: Name of the target attribute to predict
         x_values:
           type: array
           items:
             type: number
+          description: Array of values to predict for
     RequestBody:
       type: object
       properties:
         attribute_name:
           type: string
+          description: Name of the attribute to analyze
         data:
           type: array
           items:
             $ref: '#/components/schemas/FilteredEventData'
+          description: Array of event data points containing the attribute to analyze
     FuturePrices:
       type: object
       properties:
@@ -494,7 +724,9 @@ components:
           type: array
           items:
             type: integer
+          description: Array of future years to predict prices for
         data:
           type: array
           items:
             $ref: '#/components/schemas/FilteredEventData'
+          description: Array of historical event data points for training the prediction model
