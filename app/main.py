@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression  # Ensure sklearn is installed
 import numpy as np
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional, Union
 import statistics
 from collections import defaultdict
 from datetime import date
@@ -35,7 +35,7 @@ class PredictionRequest(BaseModel):
     data: List[FilteredEventData]  # List of filtered event data
     x_attribute: str  # Name of the feature (x) attribute
     y_attribute: str  # Name of the target (y) attribute
-    x_values: List[Any]  # List of x values to predict
+    x_values: List[float]  # List of x values to predict
 
 
 class RequestBody(BaseModel):
@@ -49,7 +49,7 @@ class FuturePrices(BaseModel):
 
 
 @app.post("/predict")
-def predict(data: PredictionRequest):
+def predict(data: PredictionRequest) -> Dict[str, List[float]]:
     try:
         # Extract x and y values from filtered event data based on provided attribute names
         x_data = [event.attribute.get(data.x_attribute) for event in data.data]
@@ -75,11 +75,9 @@ def predict(data: PredictionRequest):
 
 
 @app.post("/average-price-by-suburb")
-def average_price_by_suburb(
-    data: List[FilteredEventData],
-):  # Modify the input to accept a list of FilteredEventData
+def average_price_by_suburb(data: List[FilteredEventData]) -> Dict[str, Dict[str, float]]:
     try:
-        suburb_prices = {}
+        suburb_prices: Dict[str, List[float]] = {}
 
         for event in data:
             suburb = event.attribute.get("suburb")
@@ -98,9 +96,9 @@ def average_price_by_suburb(
 
 
 @app.post("/median-price-by-suburb")
-def median_price_by_suburb(data: List[FilteredEventData]):
+def median_price_by_suburb(data: List[FilteredEventData]) -> Dict[str, Dict[str, float]]:
     try:
-        suburb_prices = {}
+        suburb_prices: Dict[str, List[float]] = {}
 
         for event in data:
             suburb = event.attribute.get("suburb")
@@ -120,14 +118,14 @@ def median_price_by_suburb(data: List[FilteredEventData]):
 
 
 @app.post("/highest-value")
-def highest_value(data: RequestBody):
+def highest_value(data: RequestBody) -> Dict[str, float]:
     try:
         # Extract the values of the specified attribute
-        attribute_values = [
+        attribute_values: List[Optional[float]] = [
             event.attribute.get(data.attribute_name) for event in data.data
         ]
 
-        # Ensure there are no None values and the list is not empty
+        # Filter out None values
         attribute_values = [value for value in attribute_values if value is not None]
 
         if not attribute_values:
@@ -146,14 +144,14 @@ def highest_value(data: RequestBody):
 
 
 @app.post("/lowest-value")
-def lowest_value(data: RequestBody):
+def lowest_value(data: RequestBody) -> Dict[str, float]:
     try:
         # Extract the values of the specified attribute
-        attribute_values = [
+        attribute_values: List[Optional[float]] = [
             event.attribute.get(data.attribute_name) for event in data.data
         ]
 
-        # Ensure there are no None values and the list is not empty
+        # Filter out None values
         attribute_values = [value for value in attribute_values if value is not None]
 
         if not attribute_values:
@@ -172,14 +170,14 @@ def lowest_value(data: RequestBody):
 
 
 @app.post("/median-value")
-def median_value(data: RequestBody):
+def median_value(data: RequestBody) -> Dict[str, float]:
     try:
         # Extract the values of the specified attribute
-        attribute_values = [
+        attribute_values: List[Optional[float]] = [
             event.attribute.get(data.attribute_name) for event in data.data
         ]
 
-        # Ensure there are no None values and the list is not empty
+        # Filter out None values
         attribute_values = [value for value in attribute_values if value is not None]
 
         if not attribute_values:
@@ -198,11 +196,11 @@ def median_value(data: RequestBody):
 
 
 @app.post("/predict-future-prices")
-def predict_future_prices(data: FuturePrices):
+def predict_future_prices(data: FuturePrices) -> Dict[str, Dict[int, float]]:
     try:
         # Extract x (year) and y (price)
-        x_data = []
-        y_data = []
+        x_data: List[int] = []
+        y_data: List[float] = []
 
         for event in data.data:
             timestamp = event.time_object.get("timestamp")
@@ -218,16 +216,16 @@ def predict_future_prices(data: FuturePrices):
             )
 
         # Convert data to numpy arrays
-        x_data = np.array(x_data).reshape(-1, 1)
-        y_data = np.array(y_data)
+        x_data_np = np.array(x_data, dtype=float).reshape(-1, 1)
+        y_data_np = np.array(y_data, dtype=float)
 
         # Fit linear regression model
         model = LinearRegression()
-        model.fit(x_data, y_data)
+        model.fit(x_data_np, y_data_np)
 
         # Predict for future years
-        future_years = np.array(data.years).reshape(-1, 1)
-        predictions = model.predict(future_years)
+        future_years_np = np.array(data.years, dtype=float).reshape(-1, 1)
+        predictions = model.predict(future_years_np)
 
         return {
             "predicted_prices": dict(
@@ -240,14 +238,17 @@ def predict_future_prices(data: FuturePrices):
 
 
 @app.post("/price-outliers")
-def price_outliers(data: List[FilteredEventData]):
+def price_outliers(data: List[FilteredEventData]) -> Dict[str, List[float]]:
     try:
         # Extract prices from the input data
-        prices = [
+        prices: List[Optional[float]] = [
             event.attribute.get("price")
             for event in data
             if event.attribute.get("price") is not None
         ]
+
+        # Filter out None values
+        prices = [price for price in prices if price is not None]
 
         # Ensure there are enough data points to calculate outliers
         if len(prices) < 4:
@@ -280,9 +281,9 @@ def price_outliers(data: List[FilteredEventData]):
 
 
 @app.post("/total-sales-per-year")
-def total_sales_per_year(data: List[FilteredEventData]):
+def total_sales_per_year(data: List[FilteredEventData]) -> Dict[str, Dict[int, int]]:
     try:
-        sales_by_year = defaultdict(int)
+        sales_by_year: Dict[int, int] = defaultdict(int)
 
         for event in data:
             timestamp = event.time_object.get("timestamp")
@@ -297,9 +298,9 @@ def total_sales_per_year(data: List[FilteredEventData]):
 
 
 @app.post("/most-expensive-and-cheapest-suburb")
-def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]):
+def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]) -> Dict[str, str]:
     try:
-        suburb_prices = {}
+        suburb_prices: Dict[str, List[float]] = {}
 
         for event in data:
             suburb = event.attribute.get("suburb")
@@ -325,7 +326,7 @@ def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]):
 
 
 @app.get("/")
-def health_check():
+def health_check() -> Dict[str, str]:
     return {"status": "healthy", "microservice": "analytics"}
 
 
