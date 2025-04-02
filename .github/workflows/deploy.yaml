@@ -35,7 +35,7 @@ env:
   ECR_REPOSITORY: analyticsamd                      # set this to your Amazon ECR repository name
   ECS_SERVICE: analyticsEC2service                  # set this to your Amazon ECS service name
   ECS_CLUSTER: AnalyticsClusterEC2                  # set this to your Amazon ECS cluster name
-  ECS_TASK_DEFINITION: .aws/td2-amd-revision2-AWS-CLI-input.json  # set this to the path to your Amazon ECS task definition
+  ECS_TASK_DEFINITION: .aws/td2-amd-revision2.json  # set this to the path to your Amazon ECS task definition
                                                     # file, e.g. .aws/task-definition.json
   CONTAINER_NAME: analyticsamd                      # set this to the name of the container in the
                                                     # containerDefinitions section of your task definition
