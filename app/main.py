@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from sklearn.linear_model import LinearRegression  # Ensure sklearn is installed
 import numpy as np
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional
 import statistics
 from collections import defaultdict
 from datetime import date
