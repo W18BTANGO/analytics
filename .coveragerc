@@ -1,0 +1,9 @@
+[run]
+source = app/
+omit =
+    tests/*
+    app/__init__.py
+
+[report]
+show_missing = True
+fail_under = 85  # Set the coverage threshold to 85%
