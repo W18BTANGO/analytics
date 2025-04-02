@@ -318,4 +318,4 @@ def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]):
 
 @app.get("/")
 def health_check():
-    return {"status": "healthy", "microservice": "analytics","updated":"02/04/2025"}
+    return {"status": "healthy", "microservice": "analytics", "updated": "02/04/2025"}
