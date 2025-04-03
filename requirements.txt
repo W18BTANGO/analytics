@@ -64,3 +64,5 @@ types-sklearn
 urllib3<2.0.0
 uvicorn
 mypy
+pytest-html==3.2.0
+pdfkit==1.0.0
