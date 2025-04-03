@@ -52,24 +52,33 @@ class FuturePrices(BaseModel):
 def predict(data: PredictionRequest) -> Dict[str, List[float]]:
     try:
         # Extract x and y values from filtered event data based on provided attribute names
-        x_data = [event.attribute.get(data.x_attribute) for event in data.data]
-        y_data = [event.attribute.get(data.y_attribute) for event in data.data]
+        x_data_raw: List[Optional[Any]] = [event.attribute.get(data.x_attribute) for event in data.data]
+        y_data_raw: List[Optional[Any]] = [event.attribute.get(data.y_attribute) for event in data.data]
+
+        # Filter out None values
+        x_data_filtered = [x for x in x_data_raw if x is not None]
+        y_data_filtered = [y for y in y_data_raw if y is not None]
+
+        if len(x_data_filtered) != len(y_data_filtered):
+            raise HTTPException(status_code=400, detail="Mismatched x and y data lengths.")
 
         # Convert data to numpy arrays
-        x_data = np.array(x_data).reshape(-1, 1)
-        y_data = np.array(y_data)
+        x_data: np.ndarray = np.array(x_data_filtered, dtype=float).reshape(-1, 1)
+        y_data: np.ndarray = np.array(y_data_filtered, dtype=float)
 
         # Initialize and fit the model
         model = LinearRegression()
         model.fit(x_data, y_data)
 
         # Prepare x_values for prediction (reshaping to match the model's expected input)
-        x_values = np.array(x_data).reshape(-1, 1)
+        x_values: np.ndarray = np.array(data.x_values, dtype=float).reshape(-1, 1)
 
         # Make predictions
         prediction = model.predict(x_values)
 
         return {"prediction": prediction.tolist()}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid input data: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -121,12 +130,9 @@ def median_price_by_suburb(data: List[FilteredEventData]) -> Dict[str, Dict[str,
 def highest_value(data: RequestBody) -> Dict[str, float]:
     try:
         # Extract the values of the specified attribute
-        attribute_values: List[Optional[float]] = [
-            event.attribute.get(data.attribute_name) for event in data.data
+        attribute_values: List[float] = [
+            value for value in (event.attribute.get(data.attribute_name) for event in data.data) if value is not None
         ]
-
-        # Filter out None values
-        attribute_values = [value for value in attribute_values if value is not None]
 
         if not attribute_values:
             raise HTTPException(
@@ -147,12 +153,9 @@ def highest_value(data: RequestBody) -> Dict[str, float]:
 def lowest_value(data: RequestBody) -> Dict[str, float]:
     try:
         # Extract the values of the specified attribute
-        attribute_values: List[Optional[float]] = [
-            event.attribute.get(data.attribute_name) for event in data.data
+        attribute_values: List[float] = [
+            value for value in (event.attribute.get(data.attribute_name) for event in data.data) if value is not None
         ]
-
-        # Filter out None values
-        attribute_values = [value for value in attribute_values if value is not None]
 
         if not attribute_values:
             raise HTTPException(
@@ -173,12 +176,9 @@ def lowest_value(data: RequestBody) -> Dict[str, float]:
 def median_value(data: RequestBody) -> Dict[str, float]:
     try:
         # Extract the values of the specified attribute
-        attribute_values: List[Optional[float]] = [
-            event.attribute.get(data.attribute_name) for event in data.data
+        attribute_values: List[float] = [
+            value for value in (event.attribute.get(data.attribute_name) for event in data.data) if value is not None
         ]
-
-        # Filter out None values
-        attribute_values = [value for value in attribute_values if value is not None]
 
         if not attribute_values:
             raise HTTPException(
@@ -241,14 +241,9 @@ def predict_future_prices(data: FuturePrices) -> Dict[str, Dict[int, float]]:
 def price_outliers(data: List[FilteredEventData]) -> Dict[str, List[float]]:
     try:
         # Extract prices from the input data
-        prices: List[Optional[float]] = [
-            event.attribute.get("price")
-            for event in data
-            if event.attribute.get("price") is not None
+        prices: List[float] = [
+            price for price in (event.attribute.get("price") for event in data) if price is not None
         ]
-
-        # Filter out None values
-        prices = [price for price in prices if price is not None]
 
         # Ensure there are enough data points to calculate outliers
         if len(prices) < 4:
@@ -305,19 +300,19 @@ def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]) -> Dict[st
         for event in data:
             suburb = event.attribute.get("suburb")
             price = event.attribute.get("price")
-            if suburb and price:
-                if suburb in suburb_prices:
-                    suburb_prices[suburb].append(price)
-                else:
-                    suburb_prices[suburb] = [price]
+            if suburb and price is not None:
+                if suburb not in suburb_prices:
+                    suburb_prices[suburb] = []
+                suburb_prices[suburb].append(price)
 
         avg_prices = {
             suburb: sum(prices) / len(prices)
             for suburb, prices in suburb_prices.items()
         }
 
-        most_expensive = max(avg_prices, key=avg_prices.get)
-        cheapest = min(avg_prices, key=avg_prices.get)
+        # Use a lambda function to extract values for comparison
+        most_expensive = max(avg_prices, key=lambda suburb: avg_prices[suburb])
+        cheapest = min(avg_prices, key=lambda suburb: avg_prices[suburb])
 
         return {"most_expensive_suburb": most_expensive, "cheapest_suburb": cheapest}
 

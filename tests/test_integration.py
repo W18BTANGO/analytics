@@ -13,10 +13,13 @@ def test_workflow_predict_and_outliers():
         ],
         "x_attribute": "sqft",
         "y_attribute": "price",
-        "x_values": [1800]  # Ensure x_values is valid
+        "x_values": [1800, 1900]  # Ensure x_values is valid
     })
     assert predict_response.status_code == 200
-    predictions = predict_response.json()["prediction"]
+    predictions = predict_response.json().get("prediction", [])
+    
+    # Ensure predictions list is not empty and has the expected number of elements
+    assert len(predictions) == 2, f"Expected 2 predictions, got {len(predictions)}"
 
     # Step 2: Check for outliers in the predicted prices
     outliers_response = client.post("/price-outliers", json=[

@@ -34,6 +34,7 @@ def test_predict():
     })
     assert response.status_code == 200
     assert "prediction" in response.json()
+    assert len(response.json()["prediction"]) == 1  # Ensure prediction is returned for x_values
 
 def test_average_price_by_suburb():
     response = client.post("/average-price-by-suburb", json=[
@@ -340,10 +341,13 @@ def test_workflow_predict_and_outliers():
         ],
         "x_attribute": "sqft",
         "y_attribute": "price",
-        "x_values": [1800]
+        "x_values": [1800, 1900]  # Ensure x_values is valid
     })
     assert predict_response.status_code == 200
-    predictions = predict_response.json()["prediction"]
+    predictions = predict_response.json().get("prediction", [])
+    
+    # Ensure predictions list is not empty and has the expected number of elements
+    assert len(predictions) == 2, f"Expected 2 predictions, got {len(predictions)}"
 
     # Step 2: Check for outliers in the predicted prices
     outliers_response = client.post("/price-outliers", json=[
