@@ -114,7 +114,7 @@ jobs:
 
   deploy:
     needs: [run-ci, generate-reports]
-    uses:  W18BTANGO/ci-cd/.github/workflows/deploy.yaml@main
+    uses: W18BTANGO/ci-cd/.github/workflows/deploy.yaml@main
     with:
       aws-region: ap-southeast-2                        
       ecr-repository: analyticsamd                      
@@ -126,12 +126,10 @@ jobs:
     secrets:
       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      - name: Run CI steps
-        uses: ./.github/actions/action-ci 
 
   continuous_deployment:
     runs-on: ubuntu-latest
-    needs: continuous_integration
+    needs: [run-ci, generate-reports]
     env:
       AWS_REGION: ap-southeast-2
       ECR_REPOSITORY: preprocessing
