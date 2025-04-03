@@ -41,4 +41,4 @@ def test_median_price_by_suburb():
 def test_health():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == { "status": "healthy","microservice":"analytics" }
+    assert response.json() == {"status": "healthy", "microservice": "analytics", "updated": "02/04/2025"}
