@@ -322,9 +322,10 @@ def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]) -> Dict[st
 
 @app.get("/")
 def health_check() -> Dict[str, str]:
-    return {"status": "healthy", "microservice": "analytics"}
+    return {"status": "healthy", "microservice": "analytics", "updated": "02/04/2025"}
 
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="localhost", port=8000)  # Change port number here
+

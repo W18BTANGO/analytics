@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app  # Assuming your FastAPI app is in main.py
+from app.main import app 
 
 client = TestClient(app)
 
@@ -330,7 +330,7 @@ def test_most_expensive_and_cheapest_suburb_no_data():
 def test_health():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == { "status": "healthy","microservice":"analytics" }
+    assert response.json() == {"status": "healthy", "microservice": "analytics","updated":"02/04/2025"}
 
 def test_workflow_predict_and_outliers():
     # Step 1: Predict prices
