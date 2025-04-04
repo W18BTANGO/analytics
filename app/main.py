@@ -61,7 +61,6 @@ def predict(data: PredictionRequest) -> Dict[str, List[float]]:
 
         if not x_data_filtered or not y_data_filtered:
             raise HTTPException(status_code=400, detail="Input data cannot be empty.")
-        
 
         if len(x_data_filtered) != len(y_data_filtered):
             raise HTTPException(status_code=400, detail="Mismatched x and y data lengths.")
