@@ -59,12 +59,19 @@ def predict(data: PredictionRequest) -> Dict[str, List[float]]:
         x_data_filtered = [x for x in x_data_raw if x is not None]
         y_data_filtered = [y for y in y_data_raw if y is not None]
 
+        if not x_data_filtered or not y_data_filtered:
+            raise HTTPException(status_code=400, detail="Input data cannot be empty.")
+        
+
         if len(x_data_filtered) != len(y_data_filtered):
             raise HTTPException(status_code=400, detail="Mismatched x and y data lengths.")
 
         # Convert data to numpy arrays
         x_data: np.ndarray = np.array(x_data_filtered, dtype=float).reshape(-1, 1)
         y_data: np.ndarray = np.array(y_data_filtered, dtype=float)
+
+        if np.isnan(x_data).any() or np.isnan(y_data).any():
+            raise HTTPException(status_code=400, detail="Input data contains NaN or invalid values.")
 
         # Initialize and fit the model
         model = LinearRegression()
