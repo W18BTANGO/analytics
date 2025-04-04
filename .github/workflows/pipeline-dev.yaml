@@ -1,0 +1,26 @@
+name: Analytics CI/CD
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  run-ci:
+    uses: W18BTANGO/ci-cd/.github/workflows/integration.yaml@main
+
+  deployment:
+    needs: [run-ci]
+    uses: W18BTANGO/ci-cd/.github/workflows/deploy-dev.yaml@main
+    with:
+      aws-region: us-east-1                       
+      ecr-repository: analytics-dev           
+      ecs-service: analyticsService1                  
+      ecs-cluster: analyticsCluster                  
+      ecs-task-definition: .aws/analyticsTD-revision-dev.json                 
+      container-name: analytics-dev                     
+                                                       
+    secrets:
+      aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+      aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+      aws-session-token: ${{ secrets.AWS_SESSION_TOKEN_DEV }}
