@@ -1,4 +1,4 @@
-name: Analytics CI/CD
+name: Analytics CI/CD Dev
 
 on:
   push:
