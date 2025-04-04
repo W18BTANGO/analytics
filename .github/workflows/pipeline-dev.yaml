@@ -10,7 +10,6 @@ jobs:
     uses: W18BTANGO/ci-cd/.github/workflows/integration.yaml@main
 
   deployment:
-    needs: [run-ci]
     uses: W18BTANGO/ci-cd/.github/workflows/deploy-dev.yaml@main
     with:
       aws-region: us-east-1                       
