@@ -43,8 +43,31 @@ class RequestBody(BaseModel):
     data: List[FilteredEventData]
 
 
-class FuturePrices(BaseModel):
-    years: List[int]
+class AggregateByAttributeRequest(BaseModel):
+    group_by_attribute: str
+    value_attribute: str
+    data: List[FilteredEventData]
+
+
+class FutureValuesRequest(BaseModel):
+    time_points: List[int]
+    value_attribute: str
+    data: List[FilteredEventData]
+
+
+class OutliersRequest(BaseModel):
+    value_attribute: str
+    data: List[FilteredEventData]
+
+
+class MinMaxByAttributeRequest(BaseModel):
+    group_by_attribute: str
+    value_attribute: str
+    data: List[FilteredEventData]
+
+
+class CountByTimeRequest(BaseModel):
+    time_format: str = "year"  # year, month, day
     data: List[FilteredEventData]
 
 
@@ -89,45 +112,57 @@ def predict(data: PredictionRequest) -> Dict[str, List[float]]:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/average-price-by-suburb")
-def average_price_by_suburb(data: List[FilteredEventData]) -> Dict[str, Dict[str, float]]:
+@app.post("/average-by-attribute")
+def average_by_attribute(data: AggregateByAttributeRequest) -> Dict[str, Dict[str, float]]:
     try:
-        suburb_prices: Dict[str, List[float]] = {}
+        grouped_values: Dict[str, List[float]] = {}
 
-        for event in data:
-            suburb = event.attribute.get("suburb")
-            price = event.attribute.get("price")
-            if suburb and price is not None:
-                if suburb not in suburb_prices:
-                    suburb_prices[suburb] = []
-                suburb_prices[suburb].append(price)
+        for event in data.data:
+            group_key = event.attribute.get(data.group_by_attribute)
+            value = event.attribute.get(data.value_attribute)
+            if group_key is not None and value is not None:
+                if group_key not in grouped_values:
+                    grouped_values[group_key] = []
+                grouped_values[group_key].append(float(value))
 
-        average_prices = {
-            suburb: statistics.mean(prices) for suburb, prices in suburb_prices.items()
+        if not grouped_values:
+            raise HTTPException(
+                status_code=400,
+                detail=f"No valid data found for attributes: {data.group_by_attribute}, {data.value_attribute}",
+            )
+
+        average_values = {
+            group: statistics.mean(values) for group, values in grouped_values.items()
         }
-        return {"average_prices": average_prices}
+        return {"average_values": average_values}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/median-price-by-suburb")
-def median_price_by_suburb(data: List[FilteredEventData]) -> Dict[str, Dict[str, float]]:
+@app.post("/median-by-attribute")
+def median_by_attribute(data: AggregateByAttributeRequest) -> Dict[str, Dict[str, float]]:
     try:
-        suburb_prices: Dict[str, List[float]] = {}
+        grouped_values: Dict[str, List[float]] = {}
 
-        for event in data:
-            suburb = event.attribute.get("suburb")
-            price = event.attribute.get("price")
-            if suburb and price is not None:
-                if suburb not in suburb_prices:
-                    suburb_prices[suburb] = []
-                suburb_prices[suburb].append(price)
+        for event in data.data:
+            group_key = event.attribute.get(data.group_by_attribute)
+            value = event.attribute.get(data.value_attribute)
+            if group_key is not None and value is not None:
+                if group_key not in grouped_values:
+                    grouped_values[group_key] = []
+                grouped_values[group_key].append(float(value))
 
-        median_prices = {
-            suburb: statistics.median(prices)
-            for suburb, prices in suburb_prices.items()
+        if not grouped_values:
+            raise HTTPException(
+                status_code=400,
+                detail=f"No valid data found for attributes: {data.group_by_attribute}, {data.value_attribute}",
+            )
+
+        median_values = {
+            group: statistics.median(values)
+            for group, values in grouped_values.items()
         }
-        return {"median_prices": median_prices}
+        return {"median_values": median_values}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -137,7 +172,7 @@ def highest_value(data: RequestBody) -> Dict[str, float]:
     try:
         # Extract the values of the specified attribute
         attribute_values: List[float] = [
-            value for value in (event.attribute.get(data.attribute_name) for event in data.data) if value is not None
+            float(value) for value in (event.attribute.get(data.attribute_name) for event in data.data) if value is not None
         ]
 
         if not attribute_values:
@@ -160,7 +195,7 @@ def lowest_value(data: RequestBody) -> Dict[str, float]:
     try:
         # Extract the values of the specified attribute
         attribute_values: List[float] = [
-            value for value in (event.attribute.get(data.attribute_name) for event in data.data) if value is not None
+            float(value) for value in (event.attribute.get(data.attribute_name) for event in data.data) if value is not None
         ]
 
         if not attribute_values:
@@ -183,7 +218,7 @@ def median_value(data: RequestBody) -> Dict[str, float]:
     try:
         # Extract the values of the specified attribute
         attribute_values: List[float] = [
-            value for value in (event.attribute.get(data.attribute_name) for event in data.data) if value is not None
+            float(value) for value in (event.attribute.get(data.attribute_name) for event in data.data) if value is not None
         ]
 
         if not attribute_values:
@@ -201,24 +236,28 @@ def median_value(data: RequestBody) -> Dict[str, float]:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/predict-future-prices")
-def predict_future_prices(data: FuturePrices) -> Dict[str, Dict[int, float]]:
+@app.post("/predict-future-values")
+def predict_future_values(data: FutureValuesRequest) -> Dict[str, Dict[int, float]]:
     try:
-        # Extract x (year) and y (price)
+        # If time_points is empty, return empty predictions
+        if not data.time_points:
+            return {"predicted_values": {}}
+            
+        # Extract x (time point) and y (value)
         x_data: List[int] = []
         y_data: List[float] = []
 
         for event in data.data:
             timestamp = event.time_object.get("timestamp")
-            price = event.attribute.get("price")
-            if timestamp and price:
-                year = int(timestamp[:4])  # Extract date part
-                x_data.append(year)
-                y_data.append(price)
+            value = event.attribute.get(data.value_attribute)
+            if timestamp and value is not None:
+                time_point = int(timestamp[:4])  # Extract year part
+                x_data.append(time_point)
+                y_data.append(float(value))
 
         if len(x_data) < 2:
             raise HTTPException(
-                status_code=400, detail="Not enough data for prediction."
+                status_code=400, detail="Not enough data for prediction: At least 2 data points required"
             )
 
         # Convert data to numpy arrays
@@ -229,13 +268,13 @@ def predict_future_prices(data: FuturePrices) -> Dict[str, Dict[int, float]]:
         model = LinearRegression()
         model.fit(x_data_np, y_data_np)
 
-        # Predict for future years
-        future_years_np = np.array(data.years, dtype=float).reshape(-1, 1)
-        predictions = model.predict(future_years_np)
+        # Predict for future time points
+        future_points_np = np.array(data.time_points, dtype=float).reshape(-1, 1)
+        predictions = model.predict(future_points_np)
 
         return {
-            "predicted_prices": dict(
-                zip([int(year) for year in data.years], predictions.tolist())
+            "predicted_values": dict(
+                zip([int(point) for point in data.time_points], predictions.tolist())
             )
         }
 
@@ -243,23 +282,23 @@ def predict_future_prices(data: FuturePrices) -> Dict[str, Dict[int, float]]:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/price-outliers")
-def price_outliers(data: List[FilteredEventData]) -> Dict[str, List[float]]:
+@app.post("/outliers")
+def outliers(data: OutliersRequest) -> Dict[str, List[float]]:
     try:
-        # Extract prices from the input data
-        prices: List[float] = [
-            price for price in (event.attribute.get("price") for event in data) if price is not None
+        # Extract values from the input data
+        values: List[float] = [
+            float(value) for value in (event.attribute.get(data.value_attribute) for event in data.data) if value is not None
         ]
 
         # Ensure there are enough data points to calculate outliers
-        if len(prices) < 4:
+        if len(values) < 4:
             raise HTTPException(
-                status_code=400, detail="Not enough data to calculate outliers."
+                status_code=400, detail="Not enough data to calculate outliers: At least 4 data points required"
             )
 
         # Calculate the interquartile range (IQR)
-        q1 = np.percentile(prices, 25)
-        q3 = np.percentile(prices, 75)
+        q1 = np.percentile(values, 25)
+        q3 = np.percentile(values, 75)
         iqr = q3 - q1
 
         # Calculate bounds for outliers
@@ -267,11 +306,11 @@ def price_outliers(data: List[FilteredEventData]) -> Dict[str, List[float]]:
         upper_bound = q3 + 1.5 * iqr
 
         # Identify outliers
-        outliers = [
-            price for price in prices if price < lower_bound or price > upper_bound
+        outlier_values = [
+            value for value in values if value < lower_bound or value > upper_bound
         ]
 
-        return {"outliers": outliers}
+        return {"outliers": outlier_values}
 
     except ValueError as e:
         raise HTTPException(
@@ -281,46 +320,66 @@ def price_outliers(data: List[FilteredEventData]) -> Dict[str, List[float]]:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/total-sales-per-year")
-def total_sales_per_year(data: List[FilteredEventData]) -> Dict[str, Dict[int, int]]:
+@app.post("/count-by-time")
+def count_by_time(data: CountByTimeRequest) -> Dict[str, Dict[str, int]]:
     try:
-        sales_by_year: Dict[int, int] = defaultdict(int)
+        counts_by_time: Dict[str, int] = defaultdict(int)
 
-        for event in data:
+        for event in data.data:
             timestamp = event.time_object.get("timestamp")
             if timestamp:
-                year = date.fromisoformat(timestamp).year
-                sales_by_year[year] += 1
+                if data.time_format == "year":
+                    time_key = str(date.fromisoformat(timestamp.split("T")[0]).year)
+                elif data.time_format == "month":
+                    dt = date.fromisoformat(timestamp.split("T")[0])
+                    time_key = f"{dt.year}-{dt.month:02d}"
+                elif data.time_format == "day":
+                    time_key = timestamp.split("T")[0]
+                else:
+                    raise HTTPException(
+                        status_code=400, 
+                        detail="Invalid time_format: Must be 'year', 'month', or 'day'"
+                    )
+                counts_by_time[time_key] += 1
 
-        return {"total_sales_per_year": sales_by_year}
+        return {"counts_by_time": dict(counts_by_time)}
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/most-expensive-and-cheapest-suburb")
-def most_expensive_and_cheapest_suburb(data: List[FilteredEventData]) -> Dict[str, str]:
+@app.post("/min-max-by-attribute")
+def min_max_by_attribute(data: MinMaxByAttributeRequest) -> Dict[str, str]:
     try:
-        suburb_prices: Dict[str, List[float]] = {}
+        grouped_values: Dict[str, List[float]] = {}
 
-        for event in data:
-            suburb = event.attribute.get("suburb")
-            price = event.attribute.get("price")
-            if suburb and price is not None:
-                if suburb not in suburb_prices:
-                    suburb_prices[suburb] = []
-                suburb_prices[suburb].append(price)
+        for event in data.data:
+            group_key = event.attribute.get(data.group_by_attribute)
+            value = event.attribute.get(data.value_attribute)
+            if group_key is not None and value is not None:
+                if group_key not in grouped_values:
+                    grouped_values[group_key] = []
+                grouped_values[group_key].append(float(value))
 
-        avg_prices = {
-            suburb: sum(prices) / len(prices)
-            for suburb, prices in suburb_prices.items()
+        if not grouped_values:
+            raise HTTPException(
+                status_code=400,
+                detail=f"No valid data found for attributes: {data.group_by_attribute}, {data.value_attribute}",
+            )
+
+        avg_values = {
+            group: sum(values) / len(values)
+            for group, values in grouped_values.items()
         }
 
         # Use a lambda function to extract values for comparison
-        most_expensive = max(avg_prices, key=lambda suburb: avg_prices[suburb])
-        cheapest = min(avg_prices, key=lambda suburb: avg_prices[suburb])
+        max_key = max(avg_values, key=lambda k: avg_values[k])
+        min_key = min(avg_values, key=lambda k: avg_values[k])
 
-        return {"most_expensive_suburb": most_expensive, "cheapest_suburb": cheapest}
+        return {
+            "maximum_attribute": max_key, 
+            "minimum_attribute": min_key
+        }
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
