@@ -1,8 +1,8 @@
-import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 
 client = TestClient(app)
+
 
 def test_workflow_predict_and_outliers():
     # Step 1: Predict prices
@@ -17,7 +17,7 @@ def test_workflow_predict_and_outliers():
     })
     assert predict_response.status_code == 200
     predictions = predict_response.json().get("prediction", [])
-    
+
     # Ensure predictions list is not empty and has the expected number of elements
     assert len(predictions) == 2, f"Expected 2 predictions, got {len(predictions)}"
 
@@ -34,13 +34,14 @@ def test_workflow_predict_and_outliers():
     assert outliers_response.status_code == 200
     assert "outliers" in outliers_response.json()
 
+
 def test_workflow_sales_and_median_price():
     # Step 1: Record sales data
     sales_data = [
         {"time_object": {"timestamp": "2023-06-01"}, "event_type": "sale", "attribute": {"suburb": "Downtown", "price": 500000}},
         {"time_object": {"timestamp": "2023-07-01"}, "event_type": "sale", "attribute": {"suburb": "Downtown", "price": 600000}}
     ]
-    
+
     # Count sales by year
     count_response = client.post("/count-by-time", json={
         "time_format": "year",

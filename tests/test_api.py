@@ -1,10 +1,10 @@
-import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 
 client = TestClient(app)
 
 # Test the API endpoints with valid data
+
 
 def test_predict():
     response = client.post("/predict", json={
@@ -19,6 +19,7 @@ def test_predict():
     assert response.status_code == 200
     assert "prediction" in response.json()
 
+
 def test_average_by_attribute():
     response = client.post("/average-by-attribute", json={
         "group_by_attribute": "suburb",
@@ -30,6 +31,7 @@ def test_average_by_attribute():
     })
     assert response.status_code == 200
     assert response.json()["average_values"]["Downtown"] == 550000
+
 
 def test_median_by_attribute():
     response = client.post("/median-by-attribute", json={
@@ -44,6 +46,7 @@ def test_median_by_attribute():
     assert response.status_code == 200
     assert response.json()["median_values"]["Downtown"] == 600000
 
+
 def test_highest_value():
     response = client.post("/highest-value", json={
         "attribute_name": "price",
@@ -55,6 +58,7 @@ def test_highest_value():
     assert response.status_code == 200
     assert response.json()["highest_value"] == 700000
 
+
 def test_lowest_value():
     response = client.post("/lowest-value", json={
         "attribute_name": "price",
@@ -65,6 +69,7 @@ def test_lowest_value():
     })
     assert response.status_code == 200
     assert response.json()["lowest_value"] == 500000
+
 
 def test_health():
     response = client.get("/")

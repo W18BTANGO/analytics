@@ -242,7 +242,7 @@ def predict_future_values(data: FutureValuesRequest) -> Dict[str, Dict[int, floa
         # If time_points is empty, return empty predictions
         if not data.time_points:
             return {"predicted_values": {}}
-            
+
         # Extract x (time point) and y (value)
         x_data: List[int] = []
         y_data: List[float] = []
@@ -337,7 +337,7 @@ def count_by_time(data: CountByTimeRequest) -> Dict[str, Dict[str, int]]:
                     time_key = timestamp.split("T")[0]
                 else:
                     raise HTTPException(
-                        status_code=400, 
+                        status_code=400,
                         detail="Invalid time_format: Must be 'year', 'month', or 'day'"
                     )
                 counts_by_time[time_key] += 1
@@ -364,7 +364,7 @@ def min_max_by_attribute(data: MinMaxByAttributeRequest) -> Dict[str, str]:
         if not grouped_values:
             raise HTTPException(
                 status_code=400,
-                detail=f"No valid data found for attributes: {data.group_by_attribute}, {data.value_attribute}",
+                detail=f"No valid data found for attributes: {data.group_by_attribute}, {data.value_attribute}"
             )
 
         avg_values = {
@@ -377,7 +377,7 @@ def min_max_by_attribute(data: MinMaxByAttributeRequest) -> Dict[str, str]:
         min_key = min(avg_values, key=lambda k: avg_values[k])
 
         return {
-            "maximum_attribute": max_key, 
+            "maximum_attribute": max_key,
             "minimum_attribute": min_key
         }
 
