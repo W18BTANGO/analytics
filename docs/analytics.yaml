@@ -79,55 +79,56 @@ paths:
                     type: string
               example:
                 detail: "Invalid input data: Missing required attributes"
-  /average-price-by-suburb:
+  /average-by-attribute:
     post:
-      summary: Calculate the average price per suburb
+      summary: Calculate the average value by group attribute
       description: |
-        Calculates the mean price for each suburb based on provided sales data.
+        Calculates the mean value for each group based on provided data and specified attributes.
 
         Request body structure:
-        Array of event data points, each containing:
-        - `time_object`: Object containing timestamp information
-          - `timestamp`: ISO 8601 formatted date-time string
-        - `event_type`: Type of event (e.g., "sale")
-        - `attribute`: Object containing:
-          - `suburb`: Name of the suburb
-          - `price`: Sale price of the property
+        - `group_by_attribute`: Name of the attribute to group by
+        - `value_attribute`: Name of the attribute to calculate the average for
+        - `data`: Array of event data points, each containing:
+          - `time_object`: Object containing timestamp information
+            - `timestamp`: ISO 8601 formatted date-time string
+          - `event_type`: Type of event
+          - `attribute`: Object containing the attributes specified in group_by_attribute and value_attribute
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/FilteredEventData'
+              $ref: '#/components/schemas/AggregateByAttributeRequest'
             example:
-              - time_object:
-                  timestamp: "2023-06-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  suburb: "Downtown"
-                  price: 500000
-              - time_object:
-                  timestamp: "2023-07-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  suburb: "Downtown"
-                  price: 600000
+              group_by_attribute: "suburb"
+              value_attribute: "price"
+              data:
+                - time_object:
+                    timestamp: "2023-06-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    suburb: "Downtown"
+                    price: 500000
+                - time_object:
+                    timestamp: "2023-07-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    suburb: "Downtown"
+                    price: 600000
       responses:
         '200':
-          description: Average prices per suburb
+          description: Average values per group
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  average_prices:
+                  average_values:
                     type: object
                     additionalProperties:
                       type: number
               example:
-                average_prices:
+                average_values:
                   Downtown: 550000
                   Balmain: 750000
         '400':
@@ -140,62 +141,63 @@ paths:
                   detail:
                     type: string
               example:
-                detail: "Invalid input data: Missing suburb or price information"
-  /median-price-by-suburb:
+                detail: "No valid data found for attributes: suburb, price"
+  /median-by-attribute:
     post:
-      summary: Calculate the median price per suburb
+      summary: Calculate the median value by group attribute
       description: |
-        Calculates the median price for each suburb based on provided sales data.
+        Calculates the median value for each group based on provided data and specified attributes.
 
         Request body structure:
-        Array of event data points, each containing:
-        - `time_object`: Object containing timestamp information
-          - `timestamp`: ISO 8601 formatted date-time string
-        - `event_type`: Type of event (e.g., "sale")
-        - `attribute`: Object containing:
-          - `suburb`: Name of the suburb
-          - `price`: Sale price of the property
+        - `group_by_attribute`: Name of the attribute to group by
+        - `value_attribute`: Name of the attribute to calculate the median for
+        - `data`: Array of event data points, each containing:
+          - `time_object`: Object containing timestamp information
+            - `timestamp`: ISO 8601 formatted date-time string
+          - `event_type`: Type of event
+          - `attribute`: Object containing the attributes specified in group_by_attribute and value_attribute
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/FilteredEventData'
+              $ref: '#/components/schemas/AggregateByAttributeRequest'
             example:
-              - time_object:
-                  timestamp: "2023-06-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  suburb: "Downtown"
-                  price: 500000
-              - time_object:
-                  timestamp: "2023-07-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  suburb: "Downtown"
-                  price: 700000
-              - time_object:
-                  timestamp: "2023-08-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  suburb: "Downtown"
-                  price: 600000
+              group_by_attribute: "suburb"
+              value_attribute: "price"
+              data:
+                - time_object:
+                    timestamp: "2023-06-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    suburb: "Downtown"
+                    price: 500000
+                - time_object:
+                    timestamp: "2023-07-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    suburb: "Downtown"
+                    price: 700000
+                - time_object:
+                    timestamp: "2023-08-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    suburb: "Downtown"
+                    price: 600000
       responses:
         '200':
-          description: Median prices per suburb
+          description: Median values per group
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  median_prices:
+                  median_values:
                     type: object
                     additionalProperties:
                       type: number
               example:
-                median_prices:
+                median_values:
                   Downtown: 600000
                   Balmain: 800000
         '400':
@@ -208,7 +210,7 @@ paths:
                   detail:
                     type: string
               example:
-                detail: "Invalid input data: Missing suburb or price information"
+                detail: "No valid data found for attributes: suburb, price"
   /highest-value:
     post:
       summary: Find the highest value of an attribute
@@ -220,7 +222,7 @@ paths:
         - `data`: Array of event data points, each containing:
           - `time_object`: Object containing timestamp information
             - `timestamp`: ISO 8601 formatted date-time string
-          - `event_type`: Type of event (e.g., "sale")
+          - `event_type`: Type of event
           - `attribute`: Object containing the attribute to analyze
       requestBody:
         required: true
@@ -277,7 +279,7 @@ paths:
         - `data`: Array of event data points, each containing:
           - `time_object`: Object containing timestamp information
             - `timestamp`: ISO 8601 formatted date-time string
-          - `event_type`: Type of event (e.g., "sale")
+          - `event_type`: Type of event
           - `attribute`: Object containing the attribute to analyze
       requestBody:
         required: true
@@ -332,7 +334,7 @@ paths:
         - `data`: Array of event data points, each containing:
           - `time_object`: Object containing timestamp information
             - `timestamp`: ISO 8601 formatted date-time string
-          - `event_type`: Type of event (e.g., "sale")
+          - `event_type`: Type of event
           - `attribute`: Object containing the attribute to analyze
       requestBody:
         required: true
@@ -376,28 +378,29 @@ paths:
                     type: string
               example:
                 detail: "No valid values found for the specified attribute"
-  /predict-future-prices:
+  /predict-future-values:
     post:
-      summary: Predict future prices using linear regression
+      summary: Predict future values using linear regression
       description: |
-        Uses historical price data to predict prices for specified future years.
+        Uses historical data to predict values for specified future time points.
 
         Request body structure:
-        - `years`: Array of future years to predict prices for
+        - `time_points`: Array of future time points (e.g., years) to predict values for
+        - `value_attribute`: Name of the attribute to predict values for
         - `data`: Array of historical event data points, each containing:
           - `time_object`: Object containing timestamp information
             - `timestamp`: ISO 8601 formatted date-time string
-          - `event_type`: Type of event (e.g., "sale")
-          - `attribute`: Object containing:
-            - `price`: Historical sale price
+          - `event_type`: Type of event
+          - `attribute`: Object containing the attribute to predict
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FuturePrices'
+              $ref: '#/components/schemas/FutureValuesRequest'
             example:
-              years: [2025, 2026, 2027]
+              time_points: [2025, 2026, 2027]
+              value_attribute: "price"
               data:
                 - time_object:
                     timestamp: "2020-06-01"
@@ -421,18 +424,18 @@ paths:
                     price: 450000
       responses:
         '200':
-          description: Predicted future prices
+          description: Predicted future values
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  predicted_prices:
+                  predicted_values:
                     type: object
                     additionalProperties:
                       type: number
               example:
-                predicted_prices:
+                predicted_values:
                   2025: 500000
                   2026: 550000
                   2027: 600000
@@ -447,48 +450,48 @@ paths:
                     type: string
               example:
                 detail: "Not enough data for prediction: At least 2 data points required"
-  /price-outliers:
+  /outliers:
     post:
-      summary: Identify outlier prices
+      summary: Identify outlier values
       description: |
-        Identifies prices that are statistical outliers using the IQR method.
+        Identifies values that are statistical outliers using the IQR method.
 
         Request body structure:
-        Array of event data points, each containing:
-        - `time_object`: Object containing timestamp information
-          - `timestamp`: ISO 8601 formatted date-time string
-        - `event_type`: Type of event (e.g., "sale")
-        - `attribute`: Object containing:
-          - `price`: Sale price to analyze for outliers
+        - `value_attribute`: Name of the attribute to analyze for outliers
+        - `data`: Array of event data points, each containing:
+          - `time_object`: Object containing timestamp information
+            - `timestamp`: ISO 8601 formatted date-time string
+          - `event_type`: Type of event
+          - `attribute`: Object containing the attribute to analyze for outliers
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/FilteredEventData'
+              $ref: '#/components/schemas/OutliersRequest'
             example:
-              - time_object:
-                  timestamp: "2023-06-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  price: 100000
-              - time_object:
-                  timestamp: "2023-07-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  price: 200000
-              - time_object:
-                  timestamp: "2023-08-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  price: 5000000
-              - time_object:
-                  timestamp: "2023-09-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  price: 250000
+              value_attribute: "price"
+              data:
+                - time_object:
+                    timestamp: "2023-06-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    price: 100000
+                - time_object:
+                    timestamp: "2023-07-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    price: 200000
+                - time_object:
+                    timestamp: "2023-08-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    price: 5000000
+                - time_object:
+                    timestamp: "2023-09-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    price: 250000
       responses:
         '200':
           description: List of outliers
@@ -514,57 +517,58 @@ paths:
                     type: string
               example:
                 detail: "Not enough data to calculate outliers: At least 4 data points required"
-  /total-sales-per-year:
+  /count-by-time:
     post:
-      summary: Calculate total sales per year
+      summary: Count events by time period
       description: |
-        Counts the number of sales events for each year in the dataset.
+        Counts the number of events for each time period (year, month, or day) in the dataset.
 
         Request body structure:
-        Array of event data points, each containing:
-        - `time_object`: Object containing timestamp information
-          - `timestamp`: ISO 8601 formatted date-time string
-        - `event_type`: Type of event (e.g., "sale")
-        - `attribute`: Object (can be empty)
+        - `time_format`: Format to group by ("year", "month", or "day")
+        - `data`: Array of event data points, each containing:
+          - `time_object`: Object containing timestamp information
+            - `timestamp`: ISO 8601 formatted date-time string
+          - `event_type`: Type of event
+          - `attribute`: Object (can be empty)
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/FilteredEventData'
+              $ref: '#/components/schemas/CountByTimeRequest'
             example:
-              - time_object:
-                  timestamp: "2023-06-01"
-                event_type: "sale"
-                attribute: {}
-              - time_object:
-                  timestamp: "2023-08-15"
-                event_type: "sale"
-                attribute: {}
-              - time_object:
-                  timestamp: "2022-05-20"
-                event_type: "sale"
-                attribute: {}
+              time_format: "year"
+              data:
+                - time_object:
+                    timestamp: "2023-06-01"
+                  event_type: "sale"
+                  attribute: {}
+                - time_object:
+                    timestamp: "2023-08-15"
+                  event_type: "sale"
+                  attribute: {}
+                - time_object:
+                    timestamp: "2022-05-20"
+                  event_type: "sale"
+                  attribute: {}
       responses:
         '200':
-          description: Total sales per year
+          description: Total counts per time period
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  total_sales_per_year:
+                  counts_by_time:
                     type: object
                     additionalProperties:
                       type: integer
               example:
-                total_sales_per_year:
-                  2023: 2
-                  2022: 1
+                counts_by_time:
+                  "2023": 2
+                  "2022": 1
         '400':
-          description: Bad request - Invalid date format
+          description: Bad request - Invalid date format or time_format
           content:
             application/json:
               schema:
@@ -573,81 +577,82 @@ paths:
                   detail:
                     type: string
               example:
-                detail: "Invalid date format: Expected ISO 8601 format"
-  /most-expensive-and-cheapest-suburb:
+                detail: "Invalid time_format: Must be 'year', 'month', or 'day'"
+  /min-max-by-attribute:
     post:
-      summary: Find the most expensive and cheapest suburb
+      summary: Find groups with minimum and maximum average values
       description: |
-        Identifies suburbs with the highest and lowest average prices.
+        Identifies groups with the highest and lowest average values for a specified attribute.
 
         Request body structure:
-        Array of event data points, each containing:
-        - `time_object`: Object containing timestamp information
-          - `timestamp`: ISO 8601 formatted date-time string
-        - `event_type`: Type of event (e.g., "sale")
-        - `attribute`: Object containing:
-          - `suburb`: Name of the suburb
-          - `price`: Sale price of the property
+        - `group_by_attribute`: Name of the attribute to group by
+        - `value_attribute`: Name of the attribute to calculate averages for
+        - `data`: Array of event data points, each containing:
+          - `time_object`: Object containing timestamp information
+            - `timestamp`: ISO 8601 formatted date-time string
+          - `event_type`: Type of event
+          - `attribute`: Object containing the attributes specified in group_by_attribute and value_attribute
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/FilteredEventData'
+              $ref: '#/components/schemas/MinMaxByAttributeRequest'
             example:
-              - time_object:
-                  timestamp: "2023-06-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  suburb: "Balmain"
-                  price: 500000
-              - time_object:
-                  timestamp: "2023-06-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  suburb: "Balmain"
-                  price: 600000
-              - time_object:
-                  timestamp: "2023-06-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  suburb: "Rhodes"
-                  price: 300000
-              - time_object:
-                  timestamp: "2023-06-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  suburb: "Rhodes"
-                  price: 350000
-              - time_object:
-                  timestamp: "2023-06-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  suburb: "Darlinghurst"
-                  price: 900000
-              - time_object:
-                  timestamp: "2023-06-01T00:00:00"
-                event_type: "sale"
-                attribute:
-                  suburb: "Darlinghurst"
-                  price: 1000000
+              group_by_attribute: "suburb"
+              value_attribute: "price"
+              data:
+                - time_object:
+                    timestamp: "2023-06-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    suburb: "Balmain"
+                    price: 500000
+                - time_object:
+                    timestamp: "2023-06-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    suburb: "Balmain"
+                    price: 600000
+                - time_object:
+                    timestamp: "2023-06-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    suburb: "Rhodes"
+                    price: 300000
+                - time_object:
+                    timestamp: "2023-06-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    suburb: "Rhodes"
+                    price: 350000
+                - time_object:
+                    timestamp: "2023-06-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    suburb: "Darlinghurst"
+                    price: 900000
+                - time_object:
+                    timestamp: "2023-06-01T00:00:00"
+                  event_type: "sale"
+                  attribute:
+                    suburb: "Darlinghurst"
+                    price: 1000000
       responses:
         '200':
-          description: Most expensive and cheapest suburb
+          description: Groups with maximum and minimum average values
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  most_expensive_suburb:
+                  maximum_attribute:
                     type: string
-                  cheapest_suburb:
+                  minimum_attribute:
                     type: string
               example:
-                most_expensive_suburb: "Darlinghurst"
-                cheapest_suburb: "Rhodes"
+                maximum_attribute: "Darlinghurst"
+                minimum_attribute: "Rhodes"
         '400':
           description: Bad request - No valid data provided
           content:
@@ -658,7 +663,7 @@ paths:
                   detail:
                     type: string
               example:
-                detail: "No valid data provided: Missing suburb or price information"
+                detail: "No valid data found for attributes: suburb, price"
 components:
   schemas:
     FilteredEventData:
@@ -717,16 +722,71 @@ components:
           items:
             $ref: '#/components/schemas/FilteredEventData'
           description: Array of event data points containing the attribute to analyze
-    FuturePrices:
+    AggregateByAttributeRequest:
       type: object
       properties:
-        years:
+        group_by_attribute:
+          type: string
+          description: Name of the attribute to group by
+        value_attribute:
+          type: string
+          description: Name of the attribute to calculate the value for
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilteredEventData'
+          description: Array of event data points containing the attributes to analyze
+    FutureValuesRequest:
+      type: object
+      properties:
+        time_points:
           type: array
           items:
             type: integer
-          description: Array of future years to predict prices for
+          description: Array of future time points to predict values for
+        value_attribute:
+          type: string
+          description: Name of the attribute to predict values for
         data:
           type: array
           items:
             $ref: '#/components/schemas/FilteredEventData'
           description: Array of historical event data points for training the prediction model
+    OutliersRequest:
+      type: object
+      properties:
+        value_attribute:
+          type: string
+          description: Name of the attribute to analyze for outliers
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilteredEventData'
+          description: Array of event data points containing the attribute to analyze
+    CountByTimeRequest:
+      type: object
+      properties:
+        time_format:
+          type: string
+          enum: [year, month, day]
+          default: year
+          description: Format to group by (year, month, or day)
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilteredEventData'
+          description: Array of event data points with timestamps
+    MinMaxByAttributeRequest:
+      type: object
+      properties:
+        group_by_attribute:
+          type: string
+          description: Name of the attribute to group by
+        value_attribute:
+          type: string
+          description: Name of the attribute to calculate the average values for
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilteredEventData'
+          description: Array of event data points containing the attributes to analyze
