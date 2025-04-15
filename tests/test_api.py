@@ -19,6 +19,21 @@ def test_predict():
     assert response.status_code == 200
     assert "prediction" in response.json()
 
+def test_predict_multiple():
+    response = client.post("/predict", json={
+        "data": [
+            {"time_object": {"timestamp": "2023-06-01"}, "event_type": "sale", "attribute": {"sqft": 1500, "price": 300000}},
+            {"time_object": {"timestamp": "2023-07-01"}, "event_type": "sale", "attribute": {"sqft": 2000, "price": 400000}},
+            {"time_object": {"timestamp": "2023-07-01"}, "event_type": "sale", "attribute": {"sqft": 3000, "price": 500000}},
+            {"time_object": {"timestamp": "2023-07-01"}, "event_type": "sale", "attribute": {"sqft": 4000, "price": 600000}}
+        ],
+        "x_attribute": "sqft",
+        "y_attribute": "price",
+        "x_values": [3500, 4500, 7000]
+    })
+    assert response.status_code == 200
+    print(response.json())
+    assert len(response.json()["prediction"]) == 3
 
 def test_average_by_attribute():
     response = client.post("/average-by-attribute", json={
