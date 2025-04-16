@@ -392,4 +392,10 @@ def health_check() -> Dict[str, str]:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="localhost", port=8000)  # Change port number here
+    uvicorn.run(
+        app,
+        host="0.0.0.0",  # Accepts connections from any network interface
+        port=8000,
+        ssl_keyfile="../key.pem",       # Path to your private key file
+        ssl_certfile="../cert.pem",     # Path to your certificate file
+    )
